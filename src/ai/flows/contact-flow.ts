@@ -38,11 +38,11 @@ const contactFlow = ai.defineFlow(
   },
   async (input) => {
     const resendApiKey = process.env.RESEND_API_KEY;
-    if (!resendApiKey) {
+    if (!resendApiKey || resendApiKey === "YOUR_API_KEY_HERE") {
       console.error("Resend API key is not configured.");
       return {
         success: false,
-        message: "Resend API key is not configured on the server. Please contact support.",
+        message: "The email service is not configured on the server. Please contact support.",
       };
     }
     
