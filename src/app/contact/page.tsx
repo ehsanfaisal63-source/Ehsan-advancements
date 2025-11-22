@@ -55,13 +55,13 @@ export default function ContactPage() {
         });
         form.reset();
       } else {
-        throw new Error(result.message);
+        throw new Error(result.message || "An unknown error occurred.");
       }
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: error.message || "Could not send message.",
+        title: "Email Sending Failed",
+        description: error.message,
       });
     } finally {
       setIsLoading(false);

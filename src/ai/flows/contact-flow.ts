@@ -37,15 +37,15 @@ const contactFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      const resend = new Resend(process.env.RESEND_API_KEY);
+      const resendApiKey = process.env.RESEND_API_KEY;
+      if (!resendApiKey) {
+        throw new Error("Resend API key is not configured. Please set RESEND_API_KEY in your environment variables.");
+      }
+      const resend = new Resend(resendApiKey);
 
-      // NOTE: For testing with the 'onboarding@resend.dev' address,
-      // Resend will automatically send the email to the address you signed up with,
-      // regardless of what is in the 'to' field.
-      // For production, you must verify a domain with Resend.
       const { data, error } = await resend.emails.send({
-        from: 'Acme <onboarding@resend.dev>', // A verified domain is required for production
-        to: ['delivered@resend.dev'], // This is ignored in sandbox but required by the API.
+        from: 'Acme <onboarding@resend.dev>',
+        to: ['delivered@resend.dev'], // This will be sent to the email you signed up with on Resend.
         subject: `New Contact Message from ${input.name}`,
         html: `
           <p>You have received a new message from your website's contact form.</p>
@@ -57,31 +57,23 @@ const contactFlow = ai.defineFlow(
       });
 
       if (error) {
-        console.error('Resend error:', error);
+        console.error('Resend API Error:', error);
         return {
             success: false,
-            message: `Error sending email: ${error.message}`
+            message: `Failed to send email: ${error.message}`
         }
       }
 
       console.log("Email sent successfully via Resend:", data);
-
       return {
         success: true,
         message: 'Message sent successfully!',
       };
     } catch (error: any) {
       console.error('Error in contact flow:', error);
-      // Don't expose internal errors to the client.
-      if (error instanceof Error && (error.message.includes('Resend') || error.message.includes('API key'))) {
-          return {
-              success: false,
-              message: 'There was an issue sending the email. Please check server configuration.'
-          }
-      }
       return {
         success: false,
-        message: 'An unexpected error occurred while processing your message.',
+        message: error.message || 'An unexpected server error occurred.',
       };
     }
   }
