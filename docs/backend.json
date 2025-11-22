@@ -1,105 +1,129 @@
 {
   "entities": {
     "UserProfile": {
-      "title": "User Profile",
-      "description": "Represents a user's profile information.",
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "UserProfile",
       "type": "object",
+      "description": "Represents a user profile in the system.",
       "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user profile."
+        },
         "email": {
           "type": "string",
-          "format": "email",
-          "description": "The user's email address."
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User's display name."
         },
         "photoURL": {
           "type": "string",
-          "format": "uri",
-          "description": "URL of the user's profile picture."
+          "description": "URL of the user's profile photo.",
+          "format": "uri"
         },
-        "createdAt": {
+        "creationTime": {
           "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the user profile was created."
+          "description": "Timestamp of when the user profile was created.",
+          "format": "date-time"
+        },
+        "lastSignInTime": {
+          "type": "string",
+          "description": "Timestamp of the user's last sign-in.",
+          "format": "date-time"
         }
       },
       "required": [
-        "email"
-      ]
-    },
-    "ContactMessage": {
-      "title": "Contact Message",
-      "description": "Represents a message submitted through the contact form.",
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string",
-          "description": "The sender's name."
-        },
-        "email": {
-          "type": "string",
-          "format": "email",
-          "description": "The sender's email address."
-        },
-        "message": {
-          "type": "string",
-          "description": "The content of the message."
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the message was sent."
-        }
-      },
-      "required": [
-        "name",
+        "id",
         "email",
-        "message"
+        "displayName"
       ]
     },
-    "Note": {
-      "title": "Note",
-      "description": "A user-created note.",
+    "AuthorizationDomain": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "AuthorizationDomain",
       "type": "object",
+      "description": "Represents an authorized domain for Google authentication.",
       "properties": {
-        "content": {
+        "id": {
           "type": "string",
-          "description": "The content of the note."
+          "description": "Unique identifier for the authorization domain."
         },
-        "createdAt": {
+        "domain": {
           "type": "string",
-          "format": "date-time",
-          "description": "Timestamp of when the note was created."
+          "description": "The authorized domain URL."
+        },
+        "creationTime": {
+          "type": "string",
+          "description": "Timestamp of when the authorization domain was created.",
+          "format": "date-time"
         }
       },
       "required": [
-        "content"
+        "id",
+        "domain"
       ]
     }
   },
   "auth": {
     "providers": [
-      "email-password",
-      "google.com",
-      "github.com"
+      "password",
+      "anonymous"
     ]
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": {
-        "$ref": "#/entities/UserProfile"
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores user profile information. Only the authenticated user can access their own profile. Includes standard Firebase user data.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user, obtained from Firebase Authentication (request.auth.uid)."
+            }
+          ]
+        }
       },
-      "description": "Stores public profile information for each user."
-    },
-    "/contacts/{contactId}": {
-      "schema": {
-        "$ref": "#/entities/ContactMessage"
+      {
+        "path": "/authorizationDomains/{authorizationDomainId}",
+        "definition": {
+          "entityName": "AuthorizationDomain",
+          "schema": {
+            "$ref": "#/backend/entities/AuthorizationDomain"
+          },
+          "description": "Stores authorized domains for Google authentication. Access restricted to admins. Includes domain and creation time.",
+          "params": [
+            {
+              "name": "authorizationDomainId",
+              "description": "The unique identifier for the authorization domain."
+            }
+          ]
+        }
       },
-      "description": "Stores messages submitted through the contact form."
-    },
-    "/users/{userId}/notes/{noteId}": {
-      "schema": {
-        "$ref": "#/entities/Note"
-      },
-      "description": "Sub-collection for user-specific notes."
-    }
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "role_admin",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Documents in this collection represent users with admin roles. Existence of a document for a user indicates admin privileges.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to be secure, scalable, and easily debuggable, adhering to the core principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters). Authorization Independence is achieved through denormalization, avoiding `get()` calls in security rules. Structural Segregation ensures that collections contain documents with homogeneous security postures. Access Modeling follows consistent patterns for authorization using path-based ownership and membership maps. Data Clarity and Predictability are maintained through explicit state modeling, predictable schema, and radical consistency in naming conventions.\n\nSpecifically:\n\n*   User profiles are stored under `/users/{userId}`, ensuring that only the authenticated user can access their profile data. Authorization is inherent in the path structure.\n*   Authorization domains are stored in the `/authorizationDomains/{authorizationDomainId}` collection. Access to this collection is restricted based on global role via the existence of `/roles_admin/{uid}`.\n\nThis structure supports QAPs by:\n\n*   Segregating data with different access needs into separate collections (e.g., user profiles vs. authorization domains).\n*   Using path-based ownership for user profiles enabling secure `list` operations within a user's scope.\n"
   }
 }

@@ -1,0 +1,119 @@
+/**
+ * Core Philosophy: This ruleset implements a security model with two primary access levels: user-owned data and administrator-only data. The model prioritizes security by default, ensuring that users can only access their own information, while a separate, explicitly defined group of administrators can manage global application settings.
+ *
+ * Data Structure:
+ * - /users/{userId}: Each user has a profile document stored under their unique Firebase Authentication UID. All data within this path is considered private to that user.
+ * - /authorizationDomains/{domainId}: A top-level collection containing configuration data (authorized domains) that is readable and writable only by administrators.
+ * - /roles_admin/{userId}: A special collection that functions as an access control list. The existence of a document in this collection grants the corresponding user administrator privileges across the application.
+ *
+ * Key Security Decisions:
+ * - Strict User Ownership: Access to any document under `/users/{userId}` is strictly limited to the authenticated user whose UID matches the `userId` in the path.
+ * - Database-Based Access Control (DBAC): Administrator status is not stored in custom claims but is determined by checking for the existence of a document in the `/roles_admin/{userId}` path. This allows for dynamic, database-driven role management.
+ * - Admin Collection Lockdown: The `/roles_admin` collection itself is locked down from all client-side read and write operations. This is a critical security measure to prevent users from escalating their own privileges. Admin roles must be granted server-side or via the Firebase Console.
+ * - Deny by Default: Any path not explicitly matched is inaccessible. Permissions for each operation (get, list, create, update, delete) are explicitly defined.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----------------------------------------------------------------------
+    // Helper Functions
+    // ----------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the requesting user's UID matches the provided userId.
+     * This is the foundation of the user-ownership model.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks if a document already exists. Used to secure update/delete operations.
+     */
+    function isExistingDoc() {
+      return resource != null;
+    }
+
+    /**
+     * Checks if the requesting user is an administrator.
+     * Admin status is granted by the existence of a document in the /roles_admin collection.
+     * This requires one document read per checked operation.
+     */
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    /**
+     * Validates required fields for creating a new UserProfile.
+     * Enforces consistency between the document ID (path) and its internal 'id' field.
+     */
+    function isValidUserProfileCreate(userId) {
+      return request.resource.data.id == userId;
+    }
+
+    /**
+     * Validates a UserProfile update, ensuring the 'id' field is immutable.
+     */
+    function isValidUserProfileUpdate() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+
+    // ----------------------------------------------------------------------
+    // Collection Rules
+    // ----------------------------------------------------------------------
+
+    /**
+     * @description Secures user profile documents. Only the owner of the profile can read or write their own data.
+     * @path /users/{userId}
+     * @allow (get) An authenticated user with UID 'user_abc' can get the document at `/users/user_abc`.
+     * @deny (get) An authenticated user with UID 'user_xyz' cannot get the document at `/users/user_abc`.
+     * @principle Restricts access to a user's own data tree and enforces relational integrity on create/update.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUserProfileCreate(userId);
+      allow update: if isOwner(userId) && isExistingDoc() && isValidUserProfileUpdate();
+      allow delete: if isOwner(userId) && isExistingDoc();
+    }
+
+    /**
+     * @description Secures authorized domains. Only administrators can read or write these documents.
+     * @path /authorizationDomains/{authorizationDomainId}
+     * @allow (create) An admin user can create a new document in the `/authorizationDomains` collection.
+     * @deny (list) A non-admin user cannot list the documents in the `/authorizationDomains` collection.
+     * @principle Enforces global role-based access control (RBAC) for administrative configuration.
+     */
+    match /authorizationDomains/{authorizationDomainId} {
+      allow get: if isAdmin();
+      allow list: if isAdmin();
+      allow create: if isAdmin();
+      allow update: if isAdmin() && isExistingDoc();
+      allow delete: if isAdmin() && isExistingDoc();
+    }
+
+    /**
+     * @description Manages user roles. This collection is intentionally locked down from all client access.
+     * @path /roles_admin/{userId}
+     * @allow (create) No client operation is ever permitted.
+     * @deny (create) Any user attempting to create a document at `/roles_admin/some_user_id` will be rejected.
+     * @principle Prevents privilege escalation. Roles should only be assigned by a trusted server environment or manually in the Firebase Console.
+     */
+    match /roles_admin/{userId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}
