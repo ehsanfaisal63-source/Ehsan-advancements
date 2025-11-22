@@ -1,7 +1,7 @@
 
-import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getAuth, Auth } from "firebase/auth";
-import { getFirestore, Firestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
+import { getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -20,22 +20,22 @@ type FirebaseServices = {
 };
 
 // This is a singleton that will be created once.
-let firebaseServices: FirebaseServices | null = null;
+let firebaseClientServices: FirebaseServices | null = null;
 
 /**
- * Initializes Firebase and returns the app, auth, and firestore services.
+ * Initializes Firebase for the client and returns the app, auth, and firestore services.
  * This function is idempotent and will only initialize Firebase once.
  */
 export const initializeFirebase = (): FirebaseServices => {
-    if (firebaseServices) {
-        return firebaseServices;
+    if (firebaseClientServices) {
+        return firebaseClientServices;
     }
 
     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    firebaseServices = { app, auth, db };
+    firebaseClientServices = { app, auth, db };
 
-    return firebaseServices;
+    return firebaseClientServices;
 };

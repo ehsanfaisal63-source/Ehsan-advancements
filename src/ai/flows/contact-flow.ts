@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow to handle contact form submissions.
@@ -9,12 +10,23 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { initializeFirebase } from '@/lib/firebase/config';
+import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
+import { initializeApp as initializeAdminApp, getApps as getAdminApps, getApp as getAdminApp, type App as AdminApp, credential } from 'firebase-admin/app';
 import { Resend } from 'resend';
 
-// Initialize Firebase Admin for server-side operations
-const { db } = initializeFirebase();
+// Initialize Firebase Admin SDK for server-side operations
+let db: ReturnType<typeof getAdminFirestore>;
+
+if (!getAdminApps().length) {
+  const adminApp = initializeAdminApp({
+    credential: credential.applicationDefault(),
+  });
+  db = getAdminFirestore(adminApp);
+} else {
+  const adminApp = getAdminApp();
+  db = getAdminFirestore(adminApp);
+}
+
 
 const ContactMessageInputSchema = z.object({
   name: z.string().describe("The sender's name."),
@@ -46,9 +58,9 @@ const contactFlow = ai.defineFlow(
       }
       
       // 1. Save the message to Firestore
-      const docRef = await addDoc(collection(db, "contacts"), {
+      const docRef = await db.collection("contacts").add({
         ...input,
-        createdAt: serverTimestamp(),
+        createdAt: new Date(),
       });
       console.log("Message saved to Firestore with ID:", docRef.id);
 
@@ -85,7 +97,7 @@ const contactFlow = ai.defineFlow(
       }
       return {
         success: false,
-        message: error.message || 'An unexpected error occurred.',
+        message: 'An unexpected error occurred while processing your message.',
       };
     }
   }
