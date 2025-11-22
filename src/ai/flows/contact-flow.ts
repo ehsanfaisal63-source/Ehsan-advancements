@@ -37,12 +37,15 @@ const contactFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      // Send the email using Resend
       const resend = new Resend(process.env.RESEND_API_KEY);
 
-      await resend.emails.send({
-        from: 'onboarding@resend.dev', // This must be a domain you have verified with Resend
-        to: 'admin@example.com', // The email address you want to receive messages at
+      // NOTE: For testing with the 'onboarding@resend.dev' address,
+      // Resend will automatically send the email to the address you signed up with,
+      // regardless of what is in the 'to' field.
+      // For production, you must verify a domain with Resend.
+      const { data, error } = await resend.emails.send({
+        from: 'Acme <onboarding@resend.dev>', // A verified domain is required for production
+        to: ['delivered@resend.dev'], // This is ignored in sandbox but required by the API.
         subject: `New Contact Message from ${input.name}`,
         html: `
           <p>You have received a new message from your website's contact form.</p>
@@ -53,7 +56,15 @@ const contactFlow = ai.defineFlow(
         `,
       });
 
-      console.log("Email sent successfully via Resend.");
+      if (error) {
+        console.error('Resend error:', error);
+        return {
+            success: false,
+            message: `Error sending email: ${error.message}`
+        }
+      }
+
+      console.log("Email sent successfully via Resend:", data);
 
       return {
         success: true,
