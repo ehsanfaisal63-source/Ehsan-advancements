@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import { LogIn, LogOut, UserPlus, LayoutDashboard, Zap, Info, Briefcase, Mail, Sparkles } from "lucide-react";
+import { LogIn, LogOut, UserPlus, LayoutDashboard, Zap, Info, Briefcase, Mail, Sparkles, FolderKanban } from "lucide-react";
 
 export default function Header() {
   const { user } = useUser();
@@ -49,13 +49,22 @@ export default function Header() {
             </Link>
           ))}
           {user && (
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-1 text-foreground/60 transition-colors hover:text-foreground"
-            >
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-            </Link>
+            <>
+              <Link
+                href="/dashboard"
+                className="flex items-center gap-1 text-foreground/60 transition-colors hover:text-foreground"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Dashboard
+              </Link>
+              <Link
+                href="/projects"
+                className="flex items-center gap-1 text-foreground/60 transition-colors hover:text-foreground"
+              >
+                <FolderKanban className="h-4 w-4" />
+                Projects
+              </Link>
+            </>
           )}
         </nav>
         <div className="flex items-center justify-end space-x-2">

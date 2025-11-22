@@ -163,3 +163,72 @@ export const deleteNote = (db: Firestore, userId: string, noteId: string) => {
         }));
     });
 };
+
+// Project related functions
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  status: 'Not Started' | 'In Progress' | 'Completed';
+  createdAt: Date;
+}
+
+type ProjectData = Omit<Project, 'id' | 'createdAt'>;
+
+export const addProject = (db: Firestore, userId: string, projectData: ProjectData) => {
+  const projectsCollectionRef = collection(db, `users/${userId}/projects`);
+  const newProjectData = {
+    ...projectData,
+    createdAt: serverTimestamp(),
+  };
+  return addDoc(projectsCollectionRef, newProjectData).catch(error => {
+    errorEmitter.emit('permission-error', new FirestorePermissionError({
+        path: projectsCollectionRef.path,
+        operation: 'create',
+        requestResourceData: newProjectData,
+    }));
+    throw error;
+  });
+};
+
+export const subscribeToProjects = (
+    db: Firestore,
+    userId: string,
+    callback: (projects: Project[]) => void
+): Unsubscribe => {
+    const projectsCollectionRef = collection(db, `users/${userId}/projects`);
+    const q = query(projectsCollectionRef, orderBy("createdAt", "desc"));
+    
+    const unsubscribe = onSnapshot(q, 
+        (querySnapshot) => {
+            const projects = querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                name: doc.data().name,
+                description: doc.data().description,
+                status: doc.data().status,
+                createdAt: doc.data().createdAt?.toDate() || new Date(),
+            }));
+            callback(projects as Project[]);
+        },
+        (error) => {
+            console.error("Error subscribing to projects:", error);
+            const contextualError = new FirestorePermissionError({
+                operation: 'list',
+                path: projectsCollectionRef.path
+            });
+            errorEmitter.emit('permission-error', contextualError);
+        }
+    );
+
+    return unsubscribe;
+};
+
+export const deleteProject = (db: Firestore, userId: string, projectId: string) => {
+    const projectDocRef = doc(db, `users/${userId}/projects`, projectId);
+    deleteDoc(projectDocRef).catch(error => {
+        errorEmitter.emit('permission-error', new FirestorePermissionError({
+            path: projectDocRef.path,
+            operation: 'delete',
+        }));
+    });
+};

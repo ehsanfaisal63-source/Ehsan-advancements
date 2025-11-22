@@ -92,6 +92,14 @@ service cloud.firestore {
       match /notes/{noteId} {
         allow get, list, create, update, delete: if isOwner(userId);
       }
+      
+      /**
+       * @description A user can manage the projects within their own profile.
+       * @path /users/{userId}/projects/{projectId}
+       */
+      match /projects/{projectId} {
+        allow get, list, create, update, delete: if isOwner(userId);
+      }
     }
 
     /**
