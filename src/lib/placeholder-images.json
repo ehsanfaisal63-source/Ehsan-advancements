@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-1",
+      "description": "Abstract digital art for hero section",
+      "imageUrl": "https://images.unsplash.com/photo-1637825891028-564f672aa42c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxhYnN0cmFjdCUyMGRpZ2l0YWx8ZW58MHx8fHwxNzYzNzc2NDAwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "abstract digital"
+    },
+    {
+      "id": "dashboard-stat-1",
+      "description": "Abstract data visualization for dashboard card",
+      "imageUrl": "https://images.unsplash.com/photo-1584291527908-033f4d6542c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxkYXRhJTIwdmlzdWFsaXphdGlvbnxlbnwwfHx8fDE3NjM3NzY0MDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "data visualization"
+    },
+    {
+      "id": "dashboard-stat-2",
+      "description": "Abstract network visualization for dashboard card",
+      "imageUrl": "https://images.unsplash.com/photo-1690029670479-9fee2fa120eb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxuZXR3b3JrJTIwYWJzdHJhY3R8ZW58MHx8fHwxNzYzNzc2NDAwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "network abstract"
+    },
+    {
+      "id": "dashboard-stat-3",
+      "description": "Abstract user activity chart for dashboard card",
+      "imageUrl": "https://images.unsplash.com/photo-1703170815991-4737f0d0c8fd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhY3Rpdml0eSUyMGNoYXJ0fGVufDB8fHx8MTc2Mzc3NjQwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "activity chart"
+    }
+  ]
 }
