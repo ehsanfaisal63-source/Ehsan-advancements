@@ -35,7 +35,7 @@ export default function Header() {
       <div className="container flex h-14 max-w-screen-2xl items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <Zap className="h-6 w-6 text-primary" />
-          <span className="font-bold">Ehsan</span>
+          <span className="font-bold">Ehsan Faisal</span>
         </Link>
         <nav className="flex items-center gap-4 text-sm flex-grow">
           {navLinks.map((link) => (
