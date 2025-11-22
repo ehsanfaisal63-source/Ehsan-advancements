@@ -72,18 +72,26 @@ service cloud.firestore {
     // ----------------------------------------------------------------------
 
     /**
-     * @description Secures user profile documents. Only the owner of the profile can read or write their own data.
+     * @description Secures user profile documents and their subcollections.
      * @path /users/{userId}
-     * @allow (get) An authenticated user with UID 'user_abc' can get the document at `/users/user_abc`.
-     * @deny (get) An authenticated user with UID 'user_xyz' cannot get the document at `/users/user_abc`.
-     * @principle Restricts access to a user's own data tree and enforces relational integrity on create/update.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidUserProfileCreate(userId);
-      allow update: if isOwner(userId) && isExistingDoc() && isValidUserProfileUpdate();
-      allow delete: if isOwner(userId) && isExistingDoc();
+      /**
+       * @description A user can manage their own profile document.
+       * @allow (get) An authenticated user with UID 'user_abc' can get the document at `/users/user_abc`.
+       * @deny (get) An authenticated user with UID 'user_xyz' cannot get the document at `/users/user_abc`.
+       */
+      allow get, list, create, update, delete: if isOwner(userId);
+
+      /**
+       * @description A user can manage the notes within their own profile.
+       * @path /users/{userId}/notes/{noteId}
+       * @allow (list) An authenticated user with UID 'user_abc' can list documents in `/users/user_abc/notes`.
+       * @deny (create) An authenticated user with UID 'user_xyz' cannot create a document in `/users/user_abc/notes`.
+       */
+      match /notes/{noteId} {
+        allow get, list, create, update, delete: if isOwner(userId);
+      }
     }
 
     /**
