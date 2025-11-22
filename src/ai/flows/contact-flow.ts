@@ -15,7 +15,6 @@ import { Resend } from 'resend';
 const ContactMessageInputSchema = z.object({
   name: z.string().describe("The sender's name."),
   email: z.string().email().describe("The sender's email address."),
-  recipientEmail: z.string().email().describe("The recipient's email address."),
   message: z.string().describe('The content of the message.'),
 });
 export type ContactMessageInput = z.infer<typeof ContactMessageInputSchema>;
@@ -46,7 +45,7 @@ const contactFlow = ai.defineFlow(
 
       const { data, error } = await resend.emails.send({
         from: 'onboarding@resend.dev',
-        to: input.recipientEmail, 
+        to: 'ehsanfaisal189@gmail.com', 
         subject: `New Contact Message from ${input.name}`,
         html: `
           <p>You have received a new message from your website's contact form.</p>
@@ -61,7 +60,7 @@ const contactFlow = ai.defineFlow(
         console.error('Resend API Error:', error);
         return {
             success: false,
-            message: `Failed to send email: ${error.message}`
+            message: error.message
         }
       }
 
