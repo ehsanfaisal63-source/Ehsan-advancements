@@ -21,8 +21,7 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
-import { saveContactMessage } from "@/lib/firebase/firestore";
-import { useFirestore } from "@/firebase";
+import { handleContactMessage } from "@/ai/flows/contact-flow";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -34,7 +33,6 @@ export default function ContactPage() {
   const { toast } = useToast();
   const contactImage = PlaceHolderImages.find(p => p.id === 'contact-hero');
   const [isLoading, setIsLoading] = useState(false);
-  const db = useFirestore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,15 +44,19 @@ export default function ContactPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!db) return;
     setIsLoading(true);
     try {
-      await saveContactMessage(db, values);
-      toast({
-        title: "Message Sent!",
-        description: "Thanks for reaching out. We'll get back to you soon.",
-      });
-      form.reset();
+      const result = await handleContactMessage(values);
+
+      if (result.success) {
+        toast({
+          title: "Message Sent!",
+          description: "Thanks for reaching out. We'll get back to you soon.",
+        });
+        form.reset();
+      } else {
+        throw new Error(result.message);
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -136,7 +138,7 @@ export default function ContactPage() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isLoading || !db}>
+                <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Send Message
                 </Button>

@@ -39,22 +39,17 @@ type ContactMessage = {
     message: string;
 };
 
+/**
+ * @deprecated Use the `handleContactMessage` flow instead.
+ */
 export const saveContactMessage = async (db: Firestore, message: ContactMessage) => {
     try {
-        console.log("--- Sending Email ---");
-        console.log(`To: admin@example.com`);
-        console.log(`From: ${message.email}`);
-        console.log(`Name: ${message.name}`);
-        console.log(`Message: ${message.message}`);
-        console.log("---------------------");
-
         const docRef = await addDoc(collection(db, "contacts"), {
             ...message,
             createdAt: serverTimestamp(),
         });
         
         console.log("Message saved to Firestore with ID:", docRef.id);
-        // In a real application, you would add an email sending service here.
         
         return docRef.id;
     } catch (error) {
