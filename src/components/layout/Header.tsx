@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
 import { useRouter } from "next/navigation";
-import { LogIn, LogOut, UserPlus, LayoutDashboard, Zap, Home, Info, Briefcase, Mail } from "lucide-react";
+import { LogIn, LogOut, UserPlus, LayoutDashboard, Zap, Home, Info, Briefcase, Mail, Sparkles } from "lucide-react";
 
 export default function Header() {
   const { user } = useAuth();
@@ -25,6 +25,7 @@ export default function Header() {
     { href: "/about", label: "About", icon: Info },
     { href: "/services", label: "Services", icon: Briefcase },
     { href: "/contact", label: "Contact", icon: Mail },
+    { href: "/playground", label: "Playground", icon: Sparkles },
   ];
 
   return (
