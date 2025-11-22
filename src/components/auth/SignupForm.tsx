@@ -22,7 +22,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { createUserWithEmailAndPassword, GoogleAuthProvider, GithubAuthProvider, signInWithRedirect, UserCredential } from "firebase/auth";
-import { createUserProfile } from "@/lib/firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -68,9 +67,7 @@ export default function SignupForm() {
     },
   });
 
-  const handleSuccess = async (userCredential: UserCredential) => {
-    if (!db) return;
-    await createUserProfile(db, userCredential.user);
+  const handleSuccess = (userCredential: UserCredential) => {
     toast({
       title: "Account Created",
       description: "You have successfully signed up.",
@@ -91,11 +88,7 @@ export default function SignupForm() {
     setIsProviderLoading(provider);
     const authProvider = provider === 'google' ? new GoogleAuthProvider() : new GithubAuthProvider();
     try {
-      // Using signInWithRedirect for a more reliable auth flow.
       await signInWithRedirect(auth, authProvider);
-      // The page will redirect away. After the user signs in with the provider,
-      // they will be redirected back. The user state will be handled by the
-      // onAuthStateChanged listener, which will then trigger profile creation if needed.
     } catch (error: any) {
       handleError(error, provider);
       setIsProviderLoading(null);
@@ -111,7 +104,8 @@ export default function SignupForm() {
         values.email,
         values.password
       );
-      await handleSuccess(userCredential);
+      // Profile creation is now handled by the FirebaseProvider's onAuthStateChanged listener
+      handleSuccess(userCredential);
     } catch (error: any) {
       handleError(error);
     } finally {

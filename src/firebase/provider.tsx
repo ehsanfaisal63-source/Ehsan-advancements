@@ -2,9 +2,30 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
-import { Firestore } from 'firebase/firestore';
+import { Firestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
+
+// Helper function from firestore.ts, brought in here to be self-contained.
+export const createUserProfile = async (db: Firestore, user: User) => {
+  const userRef = doc(db, "users", user.uid);
+  try {
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists()) {
+      const { email, photoURL, displayName } = user;
+      await setDoc(userRef, {
+        email,
+        displayName: displayName || email,
+        photoURL: photoURL || null,
+        createdAt: serverTimestamp(),
+      });
+      console.log("User profile created for:", user.uid);
+    }
+  } catch (error) {
+    console.error("Error creating or checking user profile:", error);
+  }
+};
+
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -69,8 +90,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
 
   // Effect to subscribe to Firebase auth state changes
   useEffect(() => {
-    if (!auth) { // If no Auth service instance, cannot determine user state
-      setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth service not provided.") });
+    if (!auth || !firestore) { // If no Auth service instance, cannot determine user state
+      setUserAuthState({ user: null, isUserLoading: false, userError: new Error("Auth or Firestore service not provided.") });
       return;
     }
 
@@ -80,6 +101,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       auth,
       (firebaseUser) => { // Auth state determined
         setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+        if (firebaseUser) {
+          // If a user is logged in, ensure their profile exists.
+          createUserProfile(firestore, firebaseUser);
+        }
       },
       (error) => { // Auth listener error
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
@@ -87,7 +112,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       }
     );
     return () => unsubscribe(); // Cleanup
-  }, [auth]); // Depends on the auth instance
+  }, [auth, firestore]); // Depends on the auth and firestore instances
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {
