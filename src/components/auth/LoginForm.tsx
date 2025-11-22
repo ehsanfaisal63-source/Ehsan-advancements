@@ -21,7 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase/config";
+import { initializeFirebase } from "@/lib/firebase/config";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -37,6 +37,7 @@ export default function LoginForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const { auth } = initializeFirebase();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

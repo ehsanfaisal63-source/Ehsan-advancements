@@ -1,6 +1,8 @@
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { db } from "./config";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { initializeFirebase } from "./config";
 import type { User } from "firebase/auth";
+
+const { db } = initializeFirebase();
 
 export const createUserProfile = async (user: User) => {
   const userRef = doc(db, "users", user.uid);
@@ -11,7 +13,7 @@ export const createUserProfile = async (user: User) => {
     try {
       await setDoc(userRef, {
         email,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(),
       });
     } catch (error) {
       console.error("Error creating user profile:", error);
