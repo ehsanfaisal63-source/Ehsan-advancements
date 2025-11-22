@@ -1,3 +1,4 @@
+
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
@@ -18,8 +19,13 @@ type FirebaseServices = {
     db: Firestore;
 };
 
+// This is a singleton that will be created once.
 let firebaseServices: FirebaseServices | null = null;
 
+/**
+ * Initializes Firebase and returns the app, auth, and firestore services.
+ * This function is idempotent and will only initialize Firebase once.
+ */
 export const initializeFirebase = (): FirebaseServices => {
     if (firebaseServices) {
         return firebaseServices;
