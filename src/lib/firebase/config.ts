@@ -19,23 +19,10 @@ type FirebaseServices = {
     db: Firestore;
 };
 
-// This is a singleton that will be created once.
-let firebaseClientServices: FirebaseServices | null = null;
-
-/**
- * Initializes Firebase for the client and returns the app, auth, and firestore services.
- * This function is idempotent and will only initialize Firebase once.
- */
+// This function should only be called on the client side.
 export const initializeFirebase = (): FirebaseServices => {
-    if (firebaseClientServices) {
-        return firebaseClientServices;
-    }
-
     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     const auth = getAuth(app);
     const db = getFirestore(app);
-
-    firebaseClientServices = { app, auth, db };
-
-    return firebaseClientServices;
+    return { app, auth, db };
 };
