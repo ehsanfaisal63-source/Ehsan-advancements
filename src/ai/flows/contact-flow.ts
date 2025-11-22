@@ -44,7 +44,7 @@ const contactFlow = ai.defineFlow(
       const resend = new Resend(resendApiKey);
 
       const { data, error } = await resend.emails.send({
-        from: 'Acme <onboarding@resend.dev>',
+        from: 'onboarding@resend.dev',
         to: ['delivered@resend.dev'], // This will be sent to the email you signed up with on Resend.
         subject: `New Contact Message from ${input.name}`,
         html: `
