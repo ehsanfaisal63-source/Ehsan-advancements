@@ -3,12 +3,13 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  apiKey: "AIzaSyB_EM7ZBO_xkl6w0s54UOZmk9Cqv0bgqEg",
+  authDomain: "ehsan-website.firebaseapp.com",
+  projectId: "ehsan-website",
+  storageBucket: "ehsan-website.firebasestorage.app",
+  messagingSenderId: "1081384329293",
+  appId: "1:1081384329293:web:403e9921586e05f4e8bc04",
+  measurementId: "G-0G9HQBRTVV"
 };
 
 // Initialize Firebase
