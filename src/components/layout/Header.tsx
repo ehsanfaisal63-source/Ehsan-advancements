@@ -1,19 +1,20 @@
+
 "use client";
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
+import { useUser, useAuth } from "@/firebase";
 import { signOut } from "firebase/auth";
-import { initializeFirebase } from "@/lib/firebase/config";
 import { useRouter } from "next/navigation";
-import { LogIn, LogOut, UserPlus, LayoutDashboard, Zap, Home, Info, Briefcase, Mail, Sparkles } from "lucide-react";
+import { LogIn, LogOut, UserPlus, LayoutDashboard, Zap, Info, Briefcase, Mail, Sparkles } from "lucide-react";
 
 export default function Header() {
-  const { user } = useAuth();
+  const { user } = useUser();
   const router = useRouter();
-  const { auth } = initializeFirebase();
+  const auth = useAuth();
 
   const handleSignOut = async () => {
+    if (!auth) return;
     try {
       await signOut(auth);
       router.push("/");
@@ -59,7 +60,7 @@ export default function Header() {
         </nav>
         <div className="flex items-center justify-end space-x-2">
           {user ? (
-            <Button variant="ghost" onClick={handleSignOut}>
+            <Button variant="ghost" onClick={handleSignOut} disabled={!auth}>
               <LogOut className="mr-2 h-4 w-4" /> Sign Out
             </Button>
           ) : (

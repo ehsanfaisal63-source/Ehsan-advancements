@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -21,6 +22,7 @@ import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { saveContactMessage } from "@/lib/firebase/firestore";
+import { useFirestore } from "@/firebase";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -32,6 +34,7 @@ export default function ContactPage() {
   const { toast } = useToast();
   const contactImage = PlaceHolderImages.find(p => p.id === 'contact-hero');
   const [isLoading, setIsLoading] = useState(false);
+  const db = useFirestore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,9 +46,10 @@ export default function ContactPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!db) return;
     setIsLoading(true);
     try {
-      await saveContactMessage(values);
+      await saveContactMessage(db, values);
       toast({
         title: "Message Sent!",
         description: "Thanks for reaching out. We'll get back to you soon.",
@@ -132,7 +136,7 @@ export default function ContactPage() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button type="submit" className="w-full" disabled={isLoading || !db}>
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Send Message
                 </Button>

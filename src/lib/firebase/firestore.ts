@@ -1,10 +1,7 @@
-import { doc, setDoc, getDoc, serverTimestamp, collection, addDoc } from "firebase/firestore";
-import { initializeFirebase } from "./config";
+import { doc, setDoc, getDoc, serverTimestamp, collection, addDoc, Firestore } from "firebase/firestore";
 import type { User } from "firebase/auth";
 
-const { db } = initializeFirebase();
-
-export const createUserProfile = async (user: User) => {
+export const createUserProfile = async (db: Firestore, user: User) => {
   const userRef = doc(db, "users", user.uid);
   const userDoc = await getDoc(userRef);
 
@@ -21,7 +18,7 @@ export const createUserProfile = async (user: User) => {
   }
 };
 
-export const getUserProfile = async (uid: string) => {
+export const getUserProfile = async (db: Firestore, uid: string) => {
   const userRef = doc(db, "users", uid);
   try {
     const userDoc = await getDoc(userRef);
@@ -41,7 +38,7 @@ type ContactMessage = {
     message: string;
 };
 
-export const saveContactMessage = async (message: ContactMessage) => {
+export const saveContactMessage = async (db: Firestore, message: ContactMessage) => {
     try {
         const docRef = await addDoc(collection(db, "contacts"), {
             ...message,

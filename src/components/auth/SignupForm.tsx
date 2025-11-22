@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -21,13 +22,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { initializeFirebase } from "@/lib/firebase/config";
 import { createUserProfile } from "@/lib/firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { useAuth, useFirestore } from "@/firebase";
 
 const formSchema = z
   .object({
@@ -46,7 +47,8 @@ export default function SignupForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const { auth } = initializeFirebase();
+  const auth = useAuth();
+  const db = useFirestore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,6 +60,7 @@ export default function SignupForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!auth || !db) return;
     setIsLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -65,7 +68,7 @@ export default function SignupForm() {
         values.email,
         values.password
       );
-      await createUserProfile(userCredential.user);
+      await createUserProfile(db, userCredential.user);
       toast({
         title: "Account Created",
         description: "You have successfully signed up.",
@@ -132,7 +135,7 @@ export default function SignupForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading || !auth || !db}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Create Account
             </Button>

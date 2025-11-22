@@ -1,8 +1,9 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth";
+import { useUser, useFirestore } from "@/firebase";
 import { getUserProfile } from "@/lib/firebase/firestore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,8 +48,9 @@ const StatCard = ({ title, value, icon: Icon, imageId }: { title: string; value:
 
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth();
+  const { user, loading } = useUser();
   const router = useRouter();
+  const db = useFirestore();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -60,15 +62,15 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (user) {
+      if (user && db) {
         setProfileLoading(true);
-        const userProfile = (await getUserProfile(user.uid)) as UserProfile;
+        const userProfile = (await getUserProfile(db, user.uid)) as UserProfile;
         setProfile(userProfile);
         setProfileLoading(false);
       }
     };
     fetchProfile();
-  }, [user]);
+  }, [user, db]);
 
   if (loading || !user) {
     return (
