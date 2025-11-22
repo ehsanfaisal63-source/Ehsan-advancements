@@ -3,30 +3,14 @@
 /**
  * @fileOverview A flow to handle contact form submissions.
  *
- * - handleContactMessage - Saves the message to Firestore and sends an email via Resend.
+ * - handleContactMessage - Sends an email via Resend.
  * - ContactMessageInput - The input type for the flow.
  * - ContactMessageOutput - The return type for the flow.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
-import { initializeApp as initializeAdminApp, getApps as getAdminApps, getApp as getAdminApp, type App as AdminApp, credential } from 'firebase-admin/app';
 import { Resend } from 'resend';
-
-// Initialize Firebase Admin SDK for server-side operations
-let db: ReturnType<typeof getAdminFirestore>;
-
-if (!getAdminApps().length) {
-  const adminApp = initializeAdminApp({
-    credential: credential.applicationDefault(),
-  });
-  db = getAdminFirestore(adminApp);
-} else {
-  const adminApp = getAdminApp();
-  db = getAdminFirestore(adminApp);
-}
-
 
 const ContactMessageInputSchema = z.object({
   name: z.string().describe("The sender's name."),
@@ -53,18 +37,7 @@ const contactFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-      if (!db) {
-        throw new Error('Firestore is not initialized.');
-      }
-      
-      // 1. Save the message to Firestore
-      const docRef = await db.collection("contacts").add({
-        ...input,
-        createdAt: new Date(),
-      });
-      console.log("Message saved to Firestore with ID:", docRef.id);
-
-      // 2. Send the email using Resend
+      // Send the email using Resend
       const resend = new Resend(process.env.RESEND_API_KEY);
 
       await resend.emails.send({
@@ -89,7 +62,7 @@ const contactFlow = ai.defineFlow(
     } catch (error: any) {
       console.error('Error in contact flow:', error);
       // Don't expose internal errors to the client.
-      if (error instanceof Error && error.message.includes('Resend')) {
+      if (error instanceof Error && (error.message.includes('Resend') || error.message.includes('API key'))) {
           return {
               success: false,
               message: 'There was an issue sending the email. Please check server configuration.'
