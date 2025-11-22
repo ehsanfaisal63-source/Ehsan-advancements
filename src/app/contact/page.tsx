@@ -20,6 +20,7 @@ import Image from "next/image";
 import { PlaceHolderImages } from "@/lib/placeholder-images";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { saveContactMessage } from "@/lib/firebase/firestore";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -41,18 +42,24 @@ export default function ContactPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    console.log(values);
-    // Simulate API call
-    setTimeout(() => {
-        setIsLoading(false);
-        toast({
-            title: "Message Sent!",
-            description: "Thanks for reaching out. We'll get back to you soon.",
-        });
-        form.reset();
-    }, 1500);
+    try {
+      await saveContactMessage(values);
+      toast({
+        title: "Message Sent!",
+        description: "Thanks for reaching out. We'll get back to you soon.",
+      });
+      form.reset();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Something went wrong.",
+        description: error.message || "Could not send message.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (

@@ -1,4 +1,4 @@
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, serverTimestamp, collection, addDoc } from "firebase/firestore";
 import { initializeFirebase } from "./config";
 import type { User } from "firebase/auth";
 
@@ -33,4 +33,23 @@ export const getUserProfile = async (uid: string) => {
     console.error("Error fetching user profile:", error);
     return null;
   }
+};
+
+type ContactMessage = {
+    name: string;
+    email: string;
+    message: string;
+};
+
+export const saveContactMessage = async (message: ContactMessage) => {
+    try {
+        const docRef = await addDoc(collection(db, "contacts"), {
+            ...message,
+            createdAt: serverTimestamp(),
+        });
+        return docRef.id;
+    } catch (error) {
+        console.error("Error saving contact message:", error);
+        throw new Error("Could not save message.");
+    }
 };
