@@ -43,7 +43,7 @@ const NotesSection = ({ userId, db }: { userId: string; db: any }) => {
     return () => unsubscribe();
   }, [userId, db]);
 
-  const handleAddNote = async () => {
+  const handleAddNote = () => {
     if (!newNote.trim()) {
         toast({
             variant: "destructive",
@@ -51,25 +51,16 @@ const NotesSection = ({ userId, db }: { userId: string; db: any }) => {
         });
         return;
     }
-    setIsAddingNote(true);
-    try {
-        await addNote(db, userId, newNote);
-        setNewNote("");
-        toast({ title: "Note added!" });
-    } catch (error) {
-        toast({ variant: "destructive", title: "Failed to add note." });
-    } finally {
-        setIsAddingNote(false);
-    }
+    // No try-catch needed here. Errors are handled globally.
+    addNote(db, userId, newNote);
+    setNewNote("");
+    toast({ title: "Note added!" });
   };
   
-  const handleDeleteNote = async (noteId: string) => {
-    try {
-        await deleteNote(db, userId, noteId);
-        toast({ title: "Note deleted." });
-    } catch (error) {
-        toast({ variant: "destructive", title: "Failed to delete note." });
-    }
+  const handleDeleteNote = (noteId: string) => {
+    // No try-catch needed here. Errors are handled globally.
+    deleteNote(db, userId, noteId);
+    toast({ title: "Note deleted." });
   };
 
   return (
