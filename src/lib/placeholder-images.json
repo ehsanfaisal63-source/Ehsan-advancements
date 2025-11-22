@@ -23,6 +23,36 @@
       "description": "Abstract user activity chart for dashboard card",
       "imageUrl": "https://images.unsplash.com/photo-1703170815991-4737f0d0c8fd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxhY3Rpdml0eSUyMGNoYXJ0fGVufDB8fHx8MTc2Mzc3NjQwMHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "activity chart"
+    },
+    {
+      "id": "about-hero",
+      "description": "Diverse team working collaboratively in a modern office",
+      "imageUrl": "https://images.unsplash.com/photo-1517048676732-d65bc937f952?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx0ZWFtJTIwY29sbGFib3JhdGlvbnxlbnwwfHx8fDE3NjM3NTc0ODN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "team collaboration"
+    },
+    {
+      "id": "services-card-1",
+      "description": "Cloud computing abstract illustration",
+      "imageUrl": "https://images.unsplash.com/photo-1561736778-92e52a7769ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjbG91ZCUyMGNvbXB1dGluZ3xlbnwwfHx8fDE3NjM3NzY3MTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cloud computing"
+    },
+    {
+      "id": "services-card-2",
+      "description": "Cyber security abstract illustration",
+      "imageUrl": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjeWJlciUyMHNlY3VyaXR5fGVufDB8fHx8MTc2MzcyMzE3M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cyber security"
+    },
+    {
+      "id": "services-card-3",
+      "description": "Web development abstract illustration",
+      "imageUrl": "https://images.unsplash.com/photo-1565106430482-8f6e74349ca1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d2ViJTIwZGV2ZWxvcG1lbnR8ZW58MHx8fHwxNzYzNzc2NzE2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "web development"
+    },
+    {
+      "id": "contact-hero",
+      "description": "Modern communication channels abstract art",
+      "imageUrl": "https://images.unsplash.com/photo-1582437816722-26030a6eb498?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjb21tdW5pY2F0aW9uJTIwY2hhbm5lbHN8ZW58MHx8fHwxNzYzNzc2NzE2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "communication channels"
     }
   ]
 }

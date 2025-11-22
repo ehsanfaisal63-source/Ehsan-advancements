@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
 import { useRouter } from "next/navigation";
-import { LogIn, LogOut, UserPlus, LayoutDashboard, Zap } from "lucide-react";
+import { LogIn, LogOut, UserPlus, LayoutDashboard, Zap, Home, Info, Briefcase, Mail } from "lucide-react";
 
 export default function Header() {
   const { user } = useAuth();
@@ -21,6 +21,12 @@ export default function Header() {
     }
   };
 
+  const navLinks = [
+    { href: "/about", label: "About", icon: Info },
+    { href: "/services", label: "Services", icon: Briefcase },
+    { href: "/contact", label: "Contact", icon: Mail },
+  ];
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 max-w-screen-2xl items-center">
@@ -28,7 +34,17 @@ export default function Header() {
           <Zap className="h-6 w-6 text-primary" />
           <span className="font-bold">Ehsan</span>
         </Link>
-        <nav className="flex items-center gap-6 text-sm flex-grow">
+        <nav className="flex items-center gap-4 text-sm flex-grow">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="flex items-center gap-1 text-foreground/60 transition-colors hover:text-foreground"
+            >
+              <link.icon className="h-4 w-4" />
+              {link.label}
+            </Link>
+          ))}
           {user && (
             <Link
               href="/dashboard"
