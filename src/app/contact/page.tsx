@@ -24,8 +24,9 @@ import { useState } from "react";
 import { handleContactMessage } from "@/ai/flows/contact-flow";
 
 const formSchema = z.object({
+  recipientEmail: z.string().email({ message: "Invalid recipient email address." }),
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  email: z.string().email({ message: "Invalid email address." }),
+  email: z.string().email({ message: "Invalid sender email address." }),
   message: z.string().min(10, { message: "Message must be at least 10 characters." }),
 });
 
@@ -37,6 +38,7 @@ export default function ContactPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      recipientEmail: "",
       name: "",
       email: "",
       message: "",
@@ -46,7 +48,12 @@ export default function ContactPage() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      const result = await handleContactMessage(values);
+      const result = await handleContactMessage({
+        name: values.name,
+        email: values.email,
+        message: values.message,
+        to: values.recipientEmail,
+      });
 
       if (result.success) {
         toast({
@@ -95,6 +102,19 @@ export default function ContactPage() {
           <CardContent className="p-0">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="recipientEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Recipient Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="recipient@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <FormField
                   control={form.control}
                   name="name"

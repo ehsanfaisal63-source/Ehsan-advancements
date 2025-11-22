@@ -16,6 +16,7 @@ const ContactMessageInputSchema = z.object({
   name: z.string().describe("The sender's name."),
   email: z.string().email().describe("The sender's email address."),
   message: z.string().describe('The content of the message.'),
+  to: z.string().email().describe("The recipient's email address."),
 });
 export type ContactMessageInput = z.infer<typeof ContactMessageInputSchema>;
 
@@ -36,16 +37,21 @@ const contactFlow = ai.defineFlow(
     outputSchema: ContactMessageOutputSchema,
   },
   async (input) => {
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) {
+      console.error("Resend API key is not configured.");
+      return {
+        success: false,
+        message: "Resend API key is not configured on the server. Please contact support.",
+      };
+    }
+    
     try {
-      const resendApiKey = process.env.RESEND_API_KEY;
-      if (!resendApiKey) {
-        throw new Error("Resend API key is not configured. Please set RESEND_API_KEY in your environment variables.");
-      }
       const resend = new Resend(resendApiKey);
 
       const { data, error } = await resend.emails.send({
         from: 'onboarding@resend.dev',
-        to: 'ehsanfaisal189@gmail.com', 
+        to: input.to,
         subject: `New Contact Message from ${input.name}`,
         html: `
           <p>You have received a new message from your website's contact form.</p>
@@ -58,6 +64,7 @@ const contactFlow = ai.defineFlow(
 
       if (error) {
         console.error('Resend API Error:', error);
+        // Return the specific error message from Resend
         return {
             success: false,
             message: error.message
@@ -71,6 +78,7 @@ const contactFlow = ai.defineFlow(
       };
     } catch (error: any) {
       console.error('Error in contact flow:', error);
+      // Return a generic server error for unexpected issues
       return {
         success: false,
         message: error.message || 'An unexpected server error occurred.',
