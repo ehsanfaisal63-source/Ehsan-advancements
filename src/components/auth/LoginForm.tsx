@@ -21,7 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { signInWithEmailAndPassword, GoogleAuthProvider, GithubAuthProvider, signInWithPopup } from "firebase/auth";
+import { signInWithEmailAndPassword, GoogleAuthProvider, GithubAuthProvider, signInWithRedirect } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
@@ -65,20 +65,16 @@ export default function LoginForm() {
     setIsProviderLoading(provider);
     const authProvider = provider === 'google' ? new GoogleAuthProvider() : new GithubAuthProvider();
     try {
-      await signInWithPopup(auth, authProvider);
-      toast({
-        title: "Success",
-        description: "You've been logged in successfully.",
-      });
-      router.push("/dashboard");
+      await signInWithRedirect(auth, authProvider);
+      // The page will redirect, so the code below might not execute if successful.
+      // Firebase handles the redirect back and user state is managed by the onAuthStateChanged listener.
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Authentication Failed",
         description: error.message || `Could not sign in with ${provider}.`,
       });
-    } finally {
-        setIsProviderLoading(null);
+      setIsProviderLoading(null);
     }
   }
 

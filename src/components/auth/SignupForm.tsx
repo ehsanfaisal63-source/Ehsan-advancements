@@ -21,7 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { createUserWithEmailAndPassword, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, UserCredential } from "firebase/auth";
+import { createUserWithEmailAndPassword, GoogleAuthProvider, GithubAuthProvider, signInWithRedirect, UserCredential } from "firebase/auth";
 import { createUserProfile } from "@/lib/firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -91,12 +91,14 @@ export default function SignupForm() {
     setIsProviderLoading(provider);
     const authProvider = provider === 'google' ? new GoogleAuthProvider() : new GithubAuthProvider();
     try {
-      const userCredential = await signInWithPopup(auth, authProvider);
-      await handleSuccess(userCredential);
+      // Using signInWithRedirect for a more reliable auth flow.
+      await signInWithRedirect(auth, authProvider);
+      // The page will redirect away. After the user signs in with the provider,
+      // they will be redirected back. The user state will be handled by the
+      // onAuthStateChanged listener, which will then trigger profile creation if needed.
     } catch (error: any) {
       handleError(error, provider);
-    } finally {
-        setIsProviderLoading(null);
+      setIsProviderLoading(null);
     }
   }
 
