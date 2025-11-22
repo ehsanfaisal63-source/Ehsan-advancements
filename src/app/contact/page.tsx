@@ -26,6 +26,7 @@ import { handleContactMessage } from "@/ai/flows/contact-flow";
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
+  recipientEmail: z.string().email({ message: "Invalid recipient email address." }),
   message: z.string().min(10, { message: "Message must be at least 10 characters." }),
 });
 
@@ -39,6 +40,7 @@ export default function ContactPage() {
     defaultValues: {
       name: "",
       email: "",
+      recipientEmail: "",
       message: "",
     },
   });
@@ -100,7 +102,7 @@ export default function ContactPage() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Name</FormLabel>
+                      <FormLabel>Your Name</FormLabel>
                       <FormControl>
                         <Input placeholder="Your Name" {...field} />
                       </FormControl>
@@ -113,9 +115,22 @@ export default function ContactPage() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>Your Email</FormLabel>
                       <FormControl>
                         <Input placeholder="your.email@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="recipientEmail"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Recipient Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="recipient@example.com" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
