@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2, Sparkles } from 'lucide-react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -31,6 +31,7 @@ import {
   deleteProject,
   Project,
 } from '@/lib/firebase/firestore';
+import { generateProjectDetails } from '@/ai/flows/project-flow';
 import { formatDistanceToNow } from 'date-fns';
 
 const projectSchema = z.object({
@@ -39,6 +40,11 @@ const projectSchema = z.object({
   status: z.enum(['Not Started', 'In Progress', 'Completed']),
 });
 
+const aiProjectSchema = z.object({
+  prompt: z.string().min(10, 'Please describe your project in at least 10 characters.'),
+});
+
+
 export default function ProjectsPage() {
   const { user, loading: userLoading } = useUser();
   const db = useFirestore();
@@ -46,20 +52,22 @@ export default function ProjectsPage() {
   const { toast } = useToast();
 
   const [projects, setProjects] = useState<Project[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingManual, setIsSubmittingManual] = useState(false);
+  const [isSubmittingAI, setIsSubmittingAI] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors },
-  } = useForm({
+  const manualForm = useForm({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       name: '',
       description: '',
       status: 'Not Started' as 'Not Started' | 'In Progress' | 'Completed',
+    },
+  });
+
+  const aiForm = useForm({
+    resolver: zodResolver(aiProjectSchema),
+    defaultValues: {
+      prompt: '',
     },
   });
 
@@ -78,11 +86,11 @@ export default function ProjectsPage() {
 
   const handleAddProject = async (data: z.infer<typeof projectSchema>) => {
     if (!user || !db) return;
-    setIsSubmitting(true);
+    setIsSubmittingManual(true);
     try {
       await addProject(db, user.uid, data);
       toast({ title: 'Project created successfully!' });
-      reset();
+      manualForm.reset();
     } catch (error) {
       toast({
         variant: 'destructive',
@@ -90,7 +98,26 @@ export default function ProjectsPage() {
         description: 'Please try again.',
       });
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingManual(false);
+    }
+  };
+
+  const handleAiAddProject = async (data: z.infer<typeof aiProjectSchema>) => {
+    if (!user || !db) return;
+    setIsSubmittingAI(true);
+    try {
+      const projectDetails = await generateProjectDetails({ prompt: data.prompt });
+      await addProject(db, user.uid, projectDetails);
+      toast({ title: 'AI Project created successfully!', description: `Created "${projectDetails.name}"` });
+      aiForm.reset();
+    } catch (error: any) {
+        toast({
+            variant: 'destructive',
+            title: 'AI Project Creation Failed',
+            description: error.message || "The AI couldn't generate project details. Please try again.",
+        });
+    } finally {
+        setIsSubmittingAI(false);
     }
   };
 
@@ -116,35 +143,66 @@ export default function ProjectsPage() {
 
         <Card className="mb-8 bg-background/30 backdrop-blur-lg border-white/10">
           <CardHeader>
-            <CardTitle>Create a New Project</CardTitle>
+            <CardTitle>Ehsan Studio: Create with AI</CardTitle>
+            <CardDescription>Describe the project you want to create, and let AI handle the details.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={aiForm.handleSubmit(handleAiAddProject)} className="space-y-4">
+              <div className="space-y-2">
+                <Textarea
+                  placeholder="e.g., 'A mobile app for tracking daily water intake.'"
+                  {...aiForm.register('prompt')}
+                  className={aiForm.formState.errors.prompt ? 'border-destructive' : ''}
+                />
+                {aiForm.formState.errors.prompt && (
+                  <p className="text-sm text-destructive">
+                    {aiForm.formState.errors.prompt.message}
+                  </p>
+                )}
+              </div>
+              <Button type="submit" disabled={isSubmittingAI}>
+                {isSubmittingAI ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-2 h-4 w-4" />
+                )}
+                Generate Project
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-8 bg-background/30 backdrop-blur-lg border-white/10">
+          <CardHeader>
+            <CardTitle>Create a New Project Manually</CardTitle>
           </CardHeader>
           <CardContent>
             <form
-              onSubmit={handleSubmit(handleAddProject)}
+              onSubmit={manualForm.handleSubmit(handleAddProject)}
               className="space-y-4"
             >
               <div className="space-y-2">
                 <Input
                   placeholder="Project Name"
-                  {...register('name')}
-                  className={errors.name ? 'border-destructive' : ''}
+                  {...manualForm.register('name')}
+                  className={manualForm.formState.errors.name ? 'border-destructive' : ''}
                 />
-                {errors.name && (
+                {manualForm.formState.errors.name && (
                   <p className="text-sm text-destructive">
-                    {errors.name.message}
+                    {manualForm.formState.errors.name.message}
                   </p>
                 )}
               </div>
               <div className="space-y-2">
                 <Textarea
                   placeholder="Project Description (optional)"
-                  {...register('description')}
+                  {...manualForm.register('description')}
                 />
               </div>
               <div className="space-y-2">
                 <Controller
                   name="status"
-                  control={control}
+                  control={manualForm.control}
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <SelectTrigger>
@@ -159,8 +217,8 @@ export default function ProjectsPage() {
                   )}
                 />
               </div>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
+              <Button type="submit" disabled={isSubmittingManual}>
+                {isSubmittingManual ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                   <PlusCircle className="mr-2 h-4 w-4" />
@@ -224,7 +282,7 @@ export default function ProjectsPage() {
                 You haven't created any projects yet.
               </p>
               <p className="text-sm text-muted-foreground">
-                Use the form above to get started.
+                Use one of the forms above to get started.
               </p>
             </div>
           )}
