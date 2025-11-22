@@ -10,6 +10,11 @@
           "format": "email",
           "description": "The user's email address."
         },
+        "photoURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's profile picture."
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -49,11 +54,32 @@
         "email",
         "message"
       ]
+    },
+    "Note": {
+      "title": "Note",
+      "description": "A user-created note.",
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "The content of the note."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of when the note was created."
+        }
+      },
+      "required": [
+        "content"
+      ]
     }
   },
   "auth": {
     "providers": [
-      "email-password"
+      "email-password",
+      "google.com",
+      "github.com"
     ]
   },
   "firestore": {
@@ -68,6 +94,12 @@
         "$ref": "#/entities/ContactMessage"
       },
       "description": "Stores messages submitted through the contact form."
+    },
+    "/users/{userId}/notes/{noteId}": {
+      "schema": {
+        "$ref": "#/entities/Note"
+      },
+      "description": "Sub-collection for user-specific notes."
     }
   }
 }
